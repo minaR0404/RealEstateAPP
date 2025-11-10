@@ -8,8 +8,11 @@ class PropertyBase(BaseModel):
 class PropertyCreate(PropertyBase):
     pass
 
-class Property(PropertyBase):
+class Property(BaseModel):
     id: int
+    name: str
+    address: str
+    price: float
 
     class Config:
         orm_mode = True

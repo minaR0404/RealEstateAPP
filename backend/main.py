@@ -1,11 +1,17 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from typing import List
 from database import SessionLocal, engine
 import models, schemas, crud
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Real Estate API")
+# ✅ UTF-8対応レスポンスクラス
+class UTF8JSONResponse(JSONResponse):
+    media_type = "application/json; charset=utf-8"
+
+app = FastAPI(title="Real Estate API",
+              default_response_class=UTF8JSONResponse)
 
 @app.get("/properties/", response_model=List[schemas.Property])
 def read_properties(skip: int = 0, limit: int = 10):
