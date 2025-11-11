@@ -45,10 +45,10 @@ realestate_app/
 
 ## ⚙️ セットアップ方法
 
-### ① 仮想環境の作成（ローカル開発の場合）
+### 1. 仮想環境の作成（ローカル開発の場合）
 
 ```bash
-git clone https://github.com/yourname/realestate-app.git
+git clone https://github.com/minaR0404/realestate-app.git
 cd realestate-app
 
 python -m venv venv
@@ -57,7 +57,7 @@ source venv/bin/activate  # (Windowsは venv\Scripts\activate)
 pip install -r requirements.txt
 ```
 
-### ② アプリの起動
+### 2. アプリの起動
 ```bash
 streamlit run app.py
 ```
@@ -88,7 +88,7 @@ conn.close()
 
 ---
 
-## 🧠 使用技術
+## 📚 使用技術
 | 分類 | 使用技術 |
 |------|-----------|
 | フロントエンド | Streamlit |
