@@ -3,7 +3,7 @@ This app returns the average property price in Tokyo.
 
 # 🏠 RealEstateAPP（不動産価格検索アプリ）
 
-このアプリは、SQLite データベースに保存された**令和7年度の関東圏の不動産平均価格情報** を  
+このアプリは、SQLite データベースに保存された**令和7年度の関東圏の不動産平均価格情報**を  
 簡単に検索・閲覧できる Streamlit Web アプリケーションです。  
 参考情報は以下の通りです。
 [令和7年都道府県地価調査](https://www.mlit.go.jp/tochi_fudousan_kensetsugyo/tochi_fudousan_kensetsugyo_fr4_000001_00318.html)
@@ -48,8 +48,8 @@ realestate_app/
 ### 1. 仮想環境の作成（ローカル開発の場合）
 
 ```bash
-git clone https://github.com/minaR0404/realestate-app.git
-cd realestate-app
+git clone https://github.com/minaR0404/RealEstateAPP.git
+cd RealEstateAPP/backend
 
 python -m venv venv
 source venv/bin/activate  # (Windowsは venv\Scripts\activate)
@@ -73,7 +73,7 @@ streamlit run app.py
 import pandas as pd
 import sqlite3
 
-file_path = "001908994.xlsx"
+file_path = "sample.xlsx"
 df = pd.read_excel(file_path, sheet_name=None)
 
 # すべてのシートを結合して1つのDataFrameに
@@ -95,6 +95,47 @@ conn.close()
 | バックエンド | FastAPI |
 | データベース | SQLite3 |
 | 環境構築 | Python venv / Docker（任意） |
+| テスト | pytest, pytest-cov |
+
+---
+
+## 🧪 テスト
+
+このプロジェクトには包括的なテストスイートが含まれています。
+
+### テスト統計
+- **テスト数**: 95 tests
+- **成功率**: 100%
+- **コードカバレッジ**: 83% (目標80%達成 ✅)
+- **実行時間**: ~0.4秒
+
+### テスト実行方法
+
+#### 1. テスト依存関係のインストール
+```bash
+cd backend
+pip install -r requirements-dev.txt
+```
+
+#### 2. テスト実行
+```bash
+# すべてのテストを実行
+pytest tests/ -v
+
+# カバレッジ付きで実行（推奨）
+pytest tests/ --ignore=tests/test_api.py -v --cov=. --cov-report=html --cov-report=term-missing
+
+# HTMLカバレッジレポートを表示
+open htmlcov/index.html
+```
+
+### テスト内容
+- ✅ **モデルテスト** (16 tests): Property モデルのCRUD操作
+- ✅ **CRUD テスト** (33 tests): データベース操作ロジック
+- ✅ **スキーマテスト** (24 tests): Pydantic バリデーション
+- ✅ **DB統合テスト** (22 tests): トランザクション、クエリ、パフォーマンス
+
+詳細は [backend/TEST_SUMMARY.md](backend/TEST_SUMMARY.md) を参照してください。
 
 ---
 

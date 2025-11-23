@@ -1,0 +1,79 @@
+name: CI/CD - Build & Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }} # e.g. 123456789012.dkr.ecr.ap-northeast-1.amazonaws.com/my-streamlit-app
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+
+jobs:
+  build-and-push:
+    name: Build, push image to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        id: build-image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.ECR_REPOSITORY }}:latest
+            ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Set image uri
+        run: echo "IMAGE_URI=${ECR_REPOSITORY}:${{ github.sha }}" >> $GITHUB_ENV
+
+  deploy-to-ecs:
+    name: Deploy to ECS (update service)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Download task definition template
+        run: |
+          # template is kept in repo at ecs-task-def.json
+          sed -e "s|REPLACE_IMAGE_URI|${ECR_REPOSITORY}:${{ github.sha }}|g" \
+              -e "s|REPLACE_REGION|${{ secrets.AWS_REGION }}|g" \
+              ecs-task-def.json > ecs-task-def-final.json
+
+      - name: Register new task definition
+        id: register_task_def
+        run: |
+          aws ecs register-task-definition --cli-input-json file://ecs-task-def-final.json > taskdef.json
+          cat taskdef.json
+
+      - name: Deploy to ECS service
+        run: |
+          TASK_DEF_ARN=$(jq -r '.taskDefinition.taskDefinitionArn' taskdef.json)
+          aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" --force-new-deployment --task-definition "${TASK_DEF_ARN}"

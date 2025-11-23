@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  streamlit:
+    image: ${ECR_REPOSITORY}:${TAG:-latest}
+    ports:
+      - "8501:8501"
+    environment:
+      - PORT=8501
+    # SQLiteをホストに置く場合はボリュームをマウント（ECSではEFSなどを使う）
+    # volumes:
+    #   - realestate_data:/app
+
+# volumes:
+#   realestate_data:
+#     driver: local

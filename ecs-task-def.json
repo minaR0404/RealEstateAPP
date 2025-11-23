@@ -1,0 +1,35 @@
+{
+    "family": "streamlit-task",
+    "networkMode": "awsvpc",
+    "executionRoleArn": "",
+  
+    "containerDefinitions": [
+      {
+        "name": "streamlit",
+        "image": "REPLACE_IMAGE_URI",
+        "essential": true,
+        "portMappings": [
+          {
+            "containerPort": 8501,
+            "hostPort": 8501,
+            "protocol": "tcp"
+          }
+        ],
+        "environment": [
+          { "name": "PORT", "value": "8501" }
+        ],
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/streamlit",
+            "awslogs-region": "REPLACE_REGION",
+            "awslogs-stream-prefix": "streamlit"
+          }
+        }
+      }
+    ],
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "512",
+    "memory": "1024"
+  }
+  
